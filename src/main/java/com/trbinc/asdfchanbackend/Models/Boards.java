@@ -55,7 +55,7 @@ public class Boards {
         this.boardSubName = board_sub_name;
     }
 
-    private String GenerateDefaultName(@NotNull String board_sub_name) {
+    public String GenerateDefaultName(String board_sub_name) {
         if (board_sub_name == null) return "";
         return board_sub_name.toLowerCase().replaceAll(" ", "_");
     }

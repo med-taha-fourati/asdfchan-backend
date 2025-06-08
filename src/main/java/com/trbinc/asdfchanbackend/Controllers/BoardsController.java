@@ -21,7 +21,7 @@ public class BoardsController {
         try {
             List<Boards> res = boardsRepository.findAll();
             if (res.isEmpty())
-                return new ResponseEntity<>("No boards available. Contact an admin to resolve this issue", HttpStatus.NO_CONTENT);
+                return new ResponseEntity<>("No boards available. Contact an admin to resolve this issue", HttpStatus.NOT_FOUND);
             return new ResponseEntity<>(res, HttpStatus.OK);
         } catch (Exception ex) {
             return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -30,22 +30,27 @@ public class BoardsController {
 
     @CrossOrigin(origins = "*")
     @PostMapping("/api/admin/boards/create")
-    public ResponseEntity<?> CreateBoard(@NotNull @RequestBody Boards board) {
+    public ResponseEntity<?> CreateBoard(@RequestBody Boards board) {
         try {
+            if (board.getBoardName() == null || board.getBoardDesc() == null) {
+                return new ResponseEntity<>("Board data is missing. Minimum needed boardName and boardDesc", HttpStatus.BAD_REQUEST);
+            }
             if (board.getBoardName().isEmpty()) return new ResponseEntity<>("Name should not be empty", HttpStatus.BAD_REQUEST);
+            board.setBoardSubName(board.GenerateDefaultName(board.getBoardName()));
             boardsRepository.save(board);
             return new ResponseEntity<>("Board created", HttpStatus.OK);
         } catch (Exception ex) {
+            System.out.println("Error while creating board: " + ex.getMessage());
             return new ResponseEntity<>("Internal Server error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     } // verify admin existence too
 
     @CrossOrigin(origins = "*")
     @DeleteMapping("/api/admin/boards/delete")
-    public ResponseEntity<?> DeleteBoard(@NotNull @RequestBody Boards board) {
+    public ResponseEntity<?> DeleteBoard(@RequestParam long boardId) {
         try {
-            if (board.getBoardName().isEmpty()) return new ResponseEntity<>("Name should not be empty", HttpStatus.BAD_REQUEST);
-            boardsRepository.delete(board);
+            //if (boardId == null) return new ResponseEntity<>("Id should not be empty", HttpStatus.BAD_REQUEST);
+            boardsRepository.deleteById(boardId);
             return new ResponseEntity<>("Board created", HttpStatus.OK);
         } catch (Exception ex) {
             return new ResponseEntity<>("Internal Server error", HttpStatus.INTERNAL_SERVER_ERROR);
