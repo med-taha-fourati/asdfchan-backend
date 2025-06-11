@@ -26,6 +26,10 @@ public class Post {
     @OneToMany(mappedBy = "originalPost", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PostAttachement> postAttachements;
 
+    @ManyToOne
+    @JoinColumn(name = "author_id", foreignKey = @ForeignKey(name="post_post_author_fkey"))
+    private User postAuthor;
+
     public Post(String postTitle, String postContent) {
         this.postTitle = postTitle;
         this.postContent = postContent;
@@ -35,5 +39,12 @@ public class Post {
         this.postTitle = postTitle;
         this.postContent = postContent;
         this.postAttachements = postAttachements;
+    }
+
+    public Post(String postTitle, String postContent, Boards originBoard, User postAuthor) {
+        this.postTitle = postTitle;
+        this.postContent = postContent;
+        this.originBoard = originBoard;
+        this.postAuthor = postAuthor;
     }
 }

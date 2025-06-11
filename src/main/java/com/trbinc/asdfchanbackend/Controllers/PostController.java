@@ -1,9 +1,13 @@
 package com.trbinc.asdfchanbackend.Controllers;
 
+import com.trbinc.asdfchanbackend.Controllers.skel.PostDTO;
+import com.trbinc.asdfchanbackend.Middleware.JWTUtil;
 import com.trbinc.asdfchanbackend.Models.Boards;
 import com.trbinc.asdfchanbackend.Models.Post;
+import com.trbinc.asdfchanbackend.Models.User;
 import com.trbinc.asdfchanbackend.Repositories.BoardsRepository;
 import com.trbinc.asdfchanbackend.Repositories.PostRepository;
+import com.trbinc.asdfchanbackend.Repositories.UserRepository;
 import com.trbinc.asdfchanbackend.Services.PostService;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +25,10 @@ public class PostController {
     private PostRepository postRepository;
     @Autowired
     private BoardsRepository boardsRepository;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private JWTUtil jwtUtil;
 
     private final PostService postService;
     public PostController(PostService postService) {
@@ -52,9 +60,15 @@ public class PostController {
 
     @CrossOrigin(origins="*")
     @PostMapping("/api/posts/create")
-    public ResponseEntity<?> CreatePostInBoard(@RequestBody Post newpost,
+    public ResponseEntity<?> CreatePostInBoard(@RequestBody PostDTO givenPost,
                                                @RequestParam Long boardId) {
         try {
+            Post newpost = new Post(
+                givenPost.getPostTitle(),
+                givenPost.getPostContent(),
+                givenPost.getPostAttachements()
+            );
+            String authorJwtToken = givenPost.getAuthorJwtToken();
             // if board fetching doesnt work we'll try fetching it ourselves
             // or we add it as a request param
             Optional<Boards> board = Optional.ofNullable(
@@ -70,6 +84,20 @@ public class PostController {
             // there is prob a better way to do this
             newpost.getPostAttachements().stream()
                 .forEach(attachment -> attachment.setOriginalPost(newpost));
+
+            // there is prob a better way to do this part 2
+            if (authorJwtToken != null && !authorJwtToken.isEmpty()) {
+
+                if (jwtUtil.isTokenExpired(authorJwtToken)) {
+                    return new ResponseEntity<>("Author JWT token is expired", HttpStatus.UNAUTHORIZED);
+                }
+                String author = jwtUtil.extractUsername(authorJwtToken);
+                Optional<User> user = userRepository.findByUsername(author);
+                if (user.isEmpty()) {
+                    return new ResponseEntity<>("Author not found", HttpStatus.NOT_FOUND);
+                }
+                newpost.setPostAuthor(user.get());
+            }
 
             postRepository.save(newpost);
             return new ResponseEntity<>(newpost, HttpStatus.OK);

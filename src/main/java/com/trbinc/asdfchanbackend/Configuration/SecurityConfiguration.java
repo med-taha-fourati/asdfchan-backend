@@ -35,6 +35,7 @@ public class SecurityConfiguration {
                 .requestMatchers("/api/posts").permitAll()
                 .requestMatchers("/api/posts/all").permitAll()
                 .requestMatchers("/api/posts/create").permitAll() // add more later
+                .requestMatchers("/api/posts/delete").hasRole("ADMIN") // add more later
                 .requestMatchers("/api/auth/**").permitAll() // allow public access to auth routes
                 //.requestMatchers("/api/admin/boards/create").permitAll()
                 //.requestMatchers("/api/admin/boards/delete").permitAll()

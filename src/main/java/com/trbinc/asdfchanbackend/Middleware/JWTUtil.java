@@ -1,15 +1,18 @@
 package com.trbinc.asdfchanbackend.Middleware;
 
+import com.trbinc.asdfchanbackend.Models.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
+import java.util.Optional;
 
 @Component
 public class JWTUtil {
-    private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256); // generated key
+    // generated key (should be saved somewhere else persistent so that it doesnt regenerate and cause problems)
+    private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
     private final long expirationTime = 1000 * 60 * 60; // 1 hour
 
     public String generateToken(String username) {
@@ -34,7 +37,7 @@ public class JWTUtil {
         return username.equals(extractUsername(token)) && !isTokenExpired(token);
     }
 
-    private boolean isTokenExpired(String token) {
+    public boolean isTokenExpired(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
