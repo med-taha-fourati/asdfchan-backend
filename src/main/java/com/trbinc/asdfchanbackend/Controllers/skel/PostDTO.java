@@ -17,12 +17,4 @@ public class PostDTO {
     private String postTitle;
     private String postContent;
     private List<PostAttachement> postAttachements;
-
-    private String authorJwtToken;
-
-    public PostDTO(String postTitle, String postContent, List<PostAttachement> postAttachements) {
-        this.postTitle = postTitle;
-        this.postContent = postContent;
-        this.postAttachements = postAttachements;
-    }
 }

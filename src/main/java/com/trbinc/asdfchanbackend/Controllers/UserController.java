@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+
 @RestController
 @RequestMapping("/api/auth")
 public class UserController {
@@ -60,6 +62,31 @@ public class UserController {
             return new ResponseEntity<>(token, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>("Internal server error while logging in " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    
+    @CrossOrigin(origins="*")
+    @PostMapping("/retrieve/{token}")
+    public ResponseEntity<?> retrieveCredentials(@PathVariable String token) {
+        try {
+            System.out.println(token);
+            if (jwtUtil.isTokenExpired(token)) {
+                return new ResponseEntity<>("Token is expired", HttpStatus.UNAUTHORIZED);
+            }
+
+            String username = jwtUtil.extractUsername(token);
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            HashMap<String, String> credentials = new HashMap<>();
+            credentials.put("username", user.getUsername());
+            credentials.put("email", user.getEmail());
+            credentials.put("role", user.getRole());
+
+            return new ResponseEntity<>(credentials, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error retrieving credentials: " + e.getMessage(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

@@ -20,8 +20,7 @@ public class BoardsController {
     public ResponseEntity<?> GetBoards() {
         try {
             List<Boards> res = boardsRepository.findAll();
-            if (res.isEmpty())
-                return new ResponseEntity<>("No boards available. Contact an admin to resolve this issue", HttpStatus.NOT_FOUND);
+            if (res.isEmpty()) return new ResponseEntity<>("No boards available. Contact an admin to resolve this issue", HttpStatus.NOT_FOUND);
             return new ResponseEntity<>(res, HttpStatus.OK);
         } catch (Exception ex) {
             return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);

@@ -61,14 +61,20 @@ public class PostController {
     @CrossOrigin(origins="*")
     @PostMapping("/api/posts/create")
     public ResponseEntity<?> CreatePostInBoard(@RequestBody PostDTO givenPost,
-                                               @RequestParam Long boardId) {
+                                               @RequestParam Long boardId,
+                                               @RequestHeader(value="Authorization", required = false) String authorizationHeader) {
         try {
+            //TODO: make sure the jwt token is returned via the authorization header, not in the body, i am just stupid
             Post newpost = new Post(
                 givenPost.getPostTitle(),
                 givenPost.getPostContent(),
                 givenPost.getPostAttachements()
             );
-            String authorJwtToken = givenPost.getAuthorJwtToken();
+
+            String authorJwtToken = null;
+            if (authorizationHeader != null &&  authorizationHeader.startsWith("Bearer ")) {
+                authorJwtToken = authorizationHeader.substring(7);
+            }
             // if board fetching doesnt work we'll try fetching it ourselves
             // or we add it as a request param
             Optional<Boards> board = Optional.ofNullable(
@@ -82,12 +88,11 @@ public class PostController {
             newpost.setOriginBoard(boardObj);
 
             // there is prob a better way to do this
-            newpost.getPostAttachements().stream()
+            newpost.getPostAttachements()
                 .forEach(attachment -> attachment.setOriginalPost(newpost));
 
             // there is prob a better way to do this part 2
             if (authorJwtToken != null && !authorJwtToken.isEmpty()) {
-
                 if (jwtUtil.isTokenExpired(authorJwtToken)) {
                     return new ResponseEntity<>("Author JWT token is expired", HttpStatus.UNAUTHORIZED);
                 }
